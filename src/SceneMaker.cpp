@@ -100,7 +100,7 @@ SceneManager SceneMaker::makeScene(){
 
     std::random_device rnd;
     std::mt19937 mt( rnd() );
-    std::uniform_int_distribution<> rand100(-10,10);
+    std::uniform_int_distribution<> rand100(-20,20);
 
     for(int i=0;i<0;i++){
 
@@ -137,7 +137,7 @@ SceneManager SceneMaker::makeScene(){
 
         sphere->transform.scale = glm::vec3(5);
 
-        sphere->material = resourceManager->materials[0];
+        sphere->material = resourceManager->materials[1];
 
         scene.primitives.push_back(sphere);
     }
@@ -148,6 +148,14 @@ SceneManager SceneMaker::makeScene(){
     cube->transform.rotation = glm::vec3(0,0,0);
     cube->texture = garasubo;
     scene.primitives.push_back(cube);
+
+    std::shared_ptr<Primitive> pl(new Plane(&scene.camera));
+    pl->transform.scale = glm::vec3(100,100,1);
+    pl->transform.position = glm::vec3(0,-30,0);
+    pl->transform.rotation = glm::vec3(-90,0,0);
+    pl->texture = garasubo;
+    scene.primitives.push_back(pl);
+
 
     
 
@@ -184,25 +192,25 @@ SceneManager SceneMaker::makeScene(){
 /*-------------------------ライトの設定-----------------------------*/
 
     Light light;
-    light.position = glm::vec4(-15,-5,15,1);
+    light.position = glm::vec4(-25,-5,25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.5,0.2,0.2);
     light.Ls = glm::vec3(1.0,0.2,0.2);
     scene.addLight(light);
 
-    light.position = glm::vec4(-15,-5,-15,1);
+    light.position = glm::vec4(-25,-5,-25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.2,0.5,0.2);
     light.Ls = glm::vec3(0.2,1.0,0.2);
     scene.addLight(light);
 
-    light.position = glm::vec4(15,-5,-15,1);
+    light.position = glm::vec4(25,-5,-25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.2,0.2,0.5);
     light.Ls = glm::vec3(0.2,0.2,1.0);
     scene.addLight(light);
 
-    light.position = glm::vec4(15,15,15,1);
+    light.position = glm::vec4(25,25,25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.5,0.5,0.5);
     light.Ls = glm::vec3(1.0,1.0,1.0);

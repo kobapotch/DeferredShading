@@ -24,9 +24,9 @@ class Material{
         float waterness;
 
         Material(){
-            Ka = glm::vec3(1,1,1);
-            Kd = glm::vec3(1,1,1);
-            Ks = glm::vec3(1,1,1);
+            Ka = glm::vec3(0.1,0.1,0.1);
+            Kd = glm::vec3(0.5,0.5,0.5);
+            Ks = glm::vec3(0.5,0.5,0.5);
             shininess = 20;
             waterness = 0;
         }

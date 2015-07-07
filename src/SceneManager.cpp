@@ -9,6 +9,7 @@
 #include "Logger.h"
 
 #include "SceneManager.h"
+#include "ShaderManager.h"
 
 SceneManager::SceneManager(ResourceManager* resourceManager) : camera(45.0f){
     // 背景平面の準備
@@ -21,16 +22,16 @@ SceneManager::SceneManager(ResourceManager* resourceManager) : camera(45.0f){
     std::shared_ptr<Plane> planeBack(new Plane(&camera));
     planeBack->texture = texture.get();
     planeBack->material = mat;
-    planeBack->transform.scale = glm::vec3(40,40,1);
-    planeBack->transform.position = glm::vec3(0,10,-20);
+    planeBack->transform.scale = glm::vec3(100,100,1);
+    planeBack->transform.position = glm::vec3(0,0,-50);
     planes.push_back(planeBack);
 
     // 左
     std::shared_ptr<Plane> planeLeft(new Plane(&camera));
     planeLeft->texture = texture.get();
     planeLeft->material = mat;
-    planeLeft->transform.scale = glm::vec3(40,40,1);
-    planeLeft->transform.position = glm::vec3(-20,10,0);
+    planeLeft->transform.scale = glm::vec3(100,100,1);
+    planeLeft->transform.position = glm::vec3(-50,0,0);
     planeLeft->transform.rotation = glm::vec3(0,90,0);
     planes.push_back(planeLeft);
 
@@ -39,15 +40,44 @@ SceneManager::SceneManager(ResourceManager* resourceManager) : camera(45.0f){
     planeButtom->texture = texture.get();
     planeButtom->material = mat;
     planeButtom->transform.scale = glm::vec3(100,100,1);
-    planeButtom->transform.position = glm::vec3(0,-10,0);
+    planeButtom->transform.position = glm::vec3(0,-50,0);
     planeButtom->transform.rotation = glm::vec3(-90,0,0);
-    // planes.push_back(planeButtom);
-    
+    planes.push_back(planeButtom);
+
+    // 右
+    std::shared_ptr<Plane> planeRight(new Plane(&camera));
+    planeRight->texture = texture.get();
+    planeRight->material = mat;
+    planeRight->transform.scale = glm::vec3(100,100,1);
+    planeRight->transform.position = glm::vec3(50,0,0);
+    planeRight->transform.rotation = glm::vec3(0,-90,0);
+    planes.push_back(planeRight);
+
+    // 上
+    std::shared_ptr<Plane> planeTop(new Plane(&camera));
+    planeTop->texture = texture.get();
+    planeTop->material = mat;
+    planeTop->transform.scale = glm::vec3(100,100,1);
+    planeTop->transform.position = glm::vec3(0,50,0);
+    planeTop->transform.rotation = glm::vec3(90,0,0);
+    planes.push_back(planeTop);
+
+    // 前
+    std::shared_ptr<Plane> planeForward(new Plane(&camera));
+    planeForward->texture = texture.get();
+    planeForward->material = mat;
+    planeForward->transform.scale = glm::vec3(100,100,1);
+    planeForward->transform.position = glm::vec3(0,0,50);
+    planeForward->transform.rotation = glm::vec3(180,0,0);
+    planes.push_back(planeForward);
+   
+    /*
     std::shared_ptr<Water> wat(new Water(&camera));
     water = wat;
     water->transform.position = glm::vec3(0,-10,0);
     water->texture = resourceManager->textures[0].get();
-    water->material = resourceManager->materials[1];
+    water->material = resourceManager->materials[0];
+    */
 
 
     // 水面反射用フレームバッファの作成
@@ -107,7 +137,8 @@ void SceneManager::initScene(GLuint &shaderID){
     for(auto &plane : planes){
         plane->Init(shaderID);
     }
-    water->Init(shaderID);
+
+    // water->Init(shaderID);
 
     Logger::Log("Init Primitives");
     for(auto &prim : primitives){
@@ -134,46 +165,38 @@ void SceneManager::drawScene(GLuint &shaderID){
 
     if(camera.animation != NULL) camera.animation->Animate();
 
-    glBindFramebuffer(GL_FRAMEBUFFER,fbo);
-    glViewport(0,0,1024,1024);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glActiveTexture(GL_TEXTURE3);
-    glBindBuffer(GL_TEXTURE_2D,renderTex);
-    int loc = glGetUniformLocation(shaderID,"fbo");
-
-    camera.setInvert(true);
-
-    for(auto light : lights){
-        light.Set(camera.getViewMatrix());
-    }
-    for(auto &plane : planes){
-        plane->Draw(shaderID);
-    }
-    for(auto &prim : primitives){
-        prim->Draw(shaderID);
-    }
 
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     glViewport(0,0,1280*2,800*2);
 
-    glUniform1i(loc,3);
     camera.setInvert(false);
 
-     for(auto light : lights){
+    for(auto light : lights){
         light.Set(camera.getViewMatrix());
     }
 
-    for(auto &plane : planes){
-        plane->Draw(shaderID);
-    }
+    GLuint blinnPhong[] = {glGetSubroutineIndex(shaderID,GL_FRAGMENT_SHADER,"BlinnPhongADS")};
+    GLuint backGround[] = {glGetSubroutineIndex(shaderID,GL_FRAGMENT_SHADER,"BackGround")};
+    GLuint mode = glGetUniformLocation(shaderID,"shadeMode");
+
+    std::cout << blinnPhong[0] << "," << backGround[0] << "," << glGetSubroutineUniformLocation(shaderID,GL_FRAGMENT_SHADER,"shadeModel") << std::endl; 
+    
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER,1,blinnPhong);
+    glUniform1i(mode,0);
 
     for(auto &prim : primitives){
         prim->Draw(shaderID);
     }
-    if(water == NULL) {Logger::Log("error");}
-    water->Draw(shaderID);
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER,1,backGround);
+    glUniform1i(mode,1);
+
+    for(auto &plane : planes){
+        plane->Draw(shaderID);
+    }
+    // water->Draw(shaderID);
     
 }
 

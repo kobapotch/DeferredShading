@@ -1,5 +1,9 @@
 #version 410 core
 
+subroutine vec3 shadeModelType(vec4 position,vec3 normal);
+subroutine uniform shadeModelType shadeModel;
+
+uniform int shadeMode;
 
 struct MaterialInfo{
     vec3 Ka;    // アンビエント反射率
@@ -43,72 +47,75 @@ out vec4 color;
 
 
 vec3 ToonShading(vec3 color){
-    
+
     int levels = 3;
     return floor(color * levels) / levels; 
 
 }
 
-// フォーンモデルに基づくADS計算
-vec3 phongADS(vec4 pos, vec3 norm,int lightIndex){
-
-    norm = normalize(norm);
-    // s:positionから見た光の方向　r:光の反射方向　v:視点方向
-    vec3 s = normalize(Light[lightIndex].position.xyz - pos.xyz);
-    vec3 r = reflect(-s,norm);
-    vec3 v = normalize(-pos.xyz);
-
-    vec3 ambient = Light[lightIndex].La * Material.Ka;
-
-    float SdotN = max( dot(s,norm) , 0 );
-    vec3 diffuse = Light[lightIndex].Ld * Material.Kd * SdotN;
-
-    vec3 spec = vec3(0.0);
-    if(SdotN > 0.0)
-        spec = Light[lightIndex].Ls * Material.Ks * pow( max(dot(r,v),0.0), Material.shininess );
-
-    return (ambient + diffuse) * texture(textures[0],fragmentUV).xyz + spec;
-
+// 背景用
+subroutine(shadeModelType)
+vec3 BackGround(vec4 pos,vec3 norm){
+    vec3 worldView = normalize(worldPos - cameraPosition);
+    return texture(cubeMap,worldView).xyz;
 }
 
+
+
 // Blinn-Phongモデル
-vec3 BlinnPhongADS(vec4 pos, vec3 norm,int lightIndex){
+subroutine(shadeModelType)
+vec3 BlinnPhongADS(vec4 pos, vec3 norm){
 
-    norm = normalize(norm);
-    // s:positionから見た光の方向　v:視点方向 h:ハーフベクトル
-    vec3 s = normalize(Light[lightIndex].position.xyz - pos.xyz);
-    vec3 v = normalize(-pos.xyz);
-    vec3 h = normalize(s+v);
+    vec3 ambient = vec3(0,0,0);
+    vec3 diffuse = vec3(0,0,0);
+    vec3 spec = vec3(0,0,0);
 
-    vec3 ambient = Light[lightIndex].La * Material.Ka;
+    for(int lightIndex=0;lightIndex<10;lightIndex++){
 
-    float SdotN = max( dot(s,norm) , 0 );
-    vec3 diffuse = Light[lightIndex].Ld * Material.Kd * SdotN;
+        norm = normalize(norm);
+        // s:positionから見た光の方向　v:視点方向 h:ハーフベクトル
+        vec3 s = normalize(Light[lightIndex].position.xyz - pos.xyz);
+        vec3 v = normalize(-pos.xyz);
+        vec3 h = normalize(s+v);
 
-    vec3 spec = vec3(0.0);
-    if(SdotN > 0.0)
-        spec = Light[lightIndex].Ls * Material.Ks * pow( max(dot(h,norm),0.0), Material.shininess );
+        ambient = ambient +  Light[lightIndex].La * Material.Ka;
 
-    return (ambient + diffuse) * texture(textures[0],fragmentUV).xyz + spec;
+        float SdotN = max( dot(s,norm) , 0 );
+        diffuse = diffuse + Light[lightIndex].Ld * Material.Kd * SdotN;
+
+        if(SdotN > 0.0)
+            spec = spec + Light[lightIndex].Ls * Material.Ks * pow( max(dot(h,norm),0.0), Material.shininess );
+
+    }
+
+    // キューブマップの参照方向
+    vec3 worldView = normalize(worldPos - cameraPosition);
+    vec3 reflectDir = reflect(worldView,worldNor); 
+
+    float VdotN = max(dot(normalize(-pos.xyz),normalize(norm)),0);
+
+       // return (ambient + diffuse) * texture(textures[0],fragmentUV).xyz + spec; 
+
+    float A = 0.8f;
+    float B = VdotN;
+    float C = sqrt(1-A*A*(1-B*B));
+    float R = pow((A*B-C)/(A*B+C),2) + pow((A*C-B)/(A*C+B),2);
+    float F = 0.05f;
+    // R = F + (1-F)*pow(1-VdotN,5);
+
+
+     return (ambient+diffuse)*0.4 +  
+        R*(spec+texture(cubeMap,reflectDir).xyz)
+        + (1-R)*(texture(cubeMap,refract(normalize(worldView),worldNor,A)).xyz * 0.7f + vec3(1,0.5,0.5)*0.3f)
+        + vec3(0,0,1)*(R);
 
 }
 
 
 void main(){
-    vec3 lightIntensity = vec3(0.0);
-    for(int i=0;i<10;i++){
-        lightIntensity += BlinnPhongADS(fragmentPosition,fragmentNormal,i);
-    }
-    
-    color.rgb = lightIntensity;
-    
-    vec3 worldView = normalize(worldPos - cameraPosition);
-    vec3 reflectDir = reflect(worldView,worldNor); 
-    color.rgb = lightIntensity + texture(cubeMap,reflectDir).xyz*Material.Ks;
 
-    vec2 uboref = vec2((gl_FragCoord.x-0.5)/2560,-(gl_FragCoord.y-0.5)/1600);
-    color.rgb = (1 - Material.waterness)*color.rgb + Material.waterness*texture(fbo,uboref).rgb;
-    //color.rgb = (1-Material.waterness)*color.rgb + Material.waterness*vec3(gl_PointCoord.xy,0);
-    
+    color.rgb = shadeModel(fragmentPosition,fragmentNormal);
+    if(shadeMode == 0) color.rgb = BlinnPhongADS(fragmentPosition,fragmentNormal);
+    else color.rgb = BackGround(fragmentPosition,fragmentNormal);
 
 }

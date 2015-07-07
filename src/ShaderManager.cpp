@@ -10,15 +10,6 @@
 
 using namespace std;
 
-void ShaderManager::compileVertexShader(const char* file_path){
-    vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    compileShader(file_path,vertexShaderID);
-}
-
-void ShaderManager::compileFragmentShader(const char* file_path){
-    fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    compileShader(file_path,fragmentShaderID);
-}
 
 void ShaderManager::compileShader(const char* file_path,GLuint &shaderID){
     // シェーダ文字列の読み込み  
@@ -53,34 +44,53 @@ void ShaderManager::compileShader(const char* file_path,GLuint &shaderID){
 
 }
 
-GLuint ShaderManager::linkShader(){
+void ShaderManager::linkShader(std::vector<GLuint> shaderID){
     // プログラムのリンク
     cout << "Linking program" << endl;
-    cout << vertexShaderID << " : " << fragmentShaderID << endl;
+    for(int i=0;i<shaderID.size();++i){
+        cout << " " << shaderID[i];
+    }cout << endl;
 
-    programID = glCreateProgram();
-    glAttachShader(programID,vertexShaderID);
-    glAttachShader(programID,fragmentShaderID);
-    glLinkProgram(programID);
+    GLuint ID = glCreateProgram();
+    for(int i=0;i<shaderID.size();++i){
+        glAttachShader(ID,shaderID[i]);
+    }
+    glLinkProgram(ID);
 
     // プログラムのチェック
     int result;
     int infoLogLength;
     // プログラムのチェック
-    glGetProgramiv(programID,GL_LINK_STATUS,&result);
-    glGetProgramiv(programID,GL_INFO_LOG_LENGTH,&infoLogLength);
+    glGetProgramiv(ID,GL_LINK_STATUS,&result);
+    glGetProgramiv(ID,GL_INFO_LOG_LENGTH,&infoLogLength);
     vector<char> ProgramErrorMessage( max(infoLogLength,int(1)));
-    glGetProgramInfoLog(programID,infoLogLength,NULL,&ProgramErrorMessage[0]);
+    glGetProgramInfoLog(ID,infoLogLength,NULL,&ProgramErrorMessage[0]);
     if(result == GL_FALSE){std::cout << "Link failure" << result<< std::endl;}
     for(int i=0;i<ProgramErrorMessage.size();i++){
         cout << ProgramErrorMessage[i];
     }cout << endl;
 
-    glDeleteShader(vertexShaderID);
-    glDeleteShader(fragmentShaderID);
-
+    for(int i=0;i<shaderID.size();++i){
+    glDeleteShader(shaderID[i]);
+    }
     // Log("Linked program.");
-    cout << "Linked program : " << programID << endl;
+    cout << "Linked program : " << ID << endl;
 
-    return programID;
+    programID.push_back(ID);
 }
+
+void ShaderManager::makeShader(const char* vertexShader,const char* fragmentShader){
+    GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    compileShader(vertexShader,vertexShaderID);
+
+    GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+    compileShader(fragmentShader,fragmentShaderID);
+
+    std::vector<GLuint> shaderID;
+    shaderID.push_back(vertexShaderID);
+    shaderID.push_back(fragmentShaderID);
+
+    linkShader(shaderID);
+
+}
+

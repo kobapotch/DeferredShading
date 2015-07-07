@@ -1,25 +1,21 @@
 #ifndef _SHADERMANAGER_INCLUDED
 #define _SHADERMANAGER_INCLUDED
 
+#include <vector>
+
 #include <GLFW/glfw3.h>
 
 class ShaderManager{
-private:
-    
-    GLuint vertexShaderID;
-    GLuint fragmentShaderID;
+    private:
 
-    // リンクしたシェーダーのID
-    GLuint programID;
+        void compileShader(const char*, GLuint&);
+        void linkShader(std::vector<GLuint> shaderID);
 
-    void compileShader(const char*, GLuint&);
+    public:
 
-public:
-
-    void compileVertexShader(const char*);
-    void compileFragmentShader(const char*);
-
-    GLuint linkShader();
+        // リンクしたシェーダーのID
+        std::vector<GLuint> programID;
+        void makeShader(const char* vertexShader,const char* FragmentShader);
 };
 
 #endif

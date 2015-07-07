@@ -60,9 +60,8 @@ int main(int argc,char* argv[]){
 
     // シェーダーの準備
     ShaderManager shaderManager;
-    shaderManager.compileVertexShader("VertexShader.glsl");
-    shaderManager.compileFragmentShader("FragmentShader.glsl");
-    GLuint programID = shaderManager.linkShader();
+    shaderManager.makeShader("VertexShader.glsl","FragmentShader.glsl");
+    GLuint programID = shaderManager.programID[0];
 
     ResourceManager resourceManager(programID);
     resourceManager.makeResource();
