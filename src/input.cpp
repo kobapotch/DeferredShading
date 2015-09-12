@@ -15,4 +15,11 @@ KeyDirection Input::getKeyDirection(){
     return NONE;
 }
 
+bool Input::getZoomInButton(){
+    return glfwGetKey(window,GLFW_KEY_X);
+}
+bool Input::getZoomOutButton(){
+    return glfwGetKey(window,GLFW_KEY_C);
+}
+
 

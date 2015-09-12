@@ -3,7 +3,7 @@
 
 #include "Primitive.h"
 
-Sphere::Sphere(Camera* camera) : Primitive(camera){
+Sphere::Sphere() : Primitive(){
 
     float horStep = M_PI/precision;
     float verStep = M_PI/precision;

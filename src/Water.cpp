@@ -1,10 +1,7 @@
 
 #include "Primitive.h"
 
-
-
-
-Water::Water(Camera* camera) : Primitive(camera){
+Water::Water() : Primitive(){
     float xStep = width / precision;
     float zStep = height / precision;
 

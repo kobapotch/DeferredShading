@@ -10,28 +10,13 @@
 
 
 
-Primitive::Primitive(Camera* m_camera){
-    camera = m_camera;
+Primitive::Primitive(){
+    texture = NULL;
 }
+
 Primitive::~Primitive(){
     if(animation == NULL) delete animation;
 }
-/*
-Primitive::Primitive(const Primitive& obj){
-    for(int i=0;i<VERTEX_INFO_NUM;i++){
-        vbo[i] = obj.vbo[i];
-    }
-    vao = obj.vao;
-    ubo = obj.ubo;
-
-    camera = obj.camera;
-    textureID = obj.textureID;
-
-    positionData = obj.positionData;
-    colorData = obj.colorData;
-
-}
-*/
 
 void Primitive::Init(GLuint shaderID){
     Logger::Log("Primitive Init");
@@ -80,11 +65,13 @@ void Primitive::Init(GLuint shaderID){
     glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,0,(void*)0);
 
     // uniform変数の関連付け
+    /*
     ubo.push_back(glGetUniformLocation(shaderID,"MVP"));
     ubo.push_back(glGetUniformLocation(shaderID,"MV"));
     ubo.push_back(glGetUniformLocation(shaderID,"M"));
     ubo.push_back(glGetUniformLocation(shaderID,"V"));
     ubo.push_back(glGetUniformLocation(shaderID,"cameraPosition"));
+    */
 
     glBindVertexArray(0);
 
@@ -100,30 +87,18 @@ void Primitive::Init(GLuint shaderID){
 
 float angle = 0;
 
-void Primitive::Draw(GLuint shaderID){
+void Primitive::Draw(){
 
     if(animation != NULL) {
         animation->Animate();
     }
-    glm::mat4 M = transform.getModelMatrix();
-    glm::mat4 MV = camera->getViewMatrix() * M;
-    glm::mat4 MVP = camera->getProjectionMatrix() * MV;
-    glm::mat4 V = camera->getViewMatrix();
 
-    glUseProgram(shaderID);
     glBindVertexArray(vao);
 
     // テクスチャの切り替え
     if(texture != NULL) texture->setTexture();
     // マテリアルのセット
     if(material != nullptr) material->Set();
-
-    // 変換行列をシェーダーに送り込む
-    glUniformMatrix4fv(ubo[0],1,GL_FALSE,&MVP[0][0]);
-    glUniformMatrix4fv(ubo[1],1,GL_FALSE,&MV[0][0]);
-    glUniformMatrix4fv(ubo[2],1,GL_FALSE,&M[0][0]);
-    glUniformMatrix4fv(ubo[3],1,GL_FALSE,&V[0][0]);
-    glUniform3fv(ubo[4],1,&camera->getPosition()[0]);
 
     // プリミティブによって描画方法を変えられる
     DrawVertex();
@@ -145,4 +120,15 @@ void Primitive::DrawVertex(){
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
         glDrawElements(GL_TRIANGLES,indexData.size(),GL_UNSIGNED_INT,0);
     }
+}
+
+void Primitive::print(){
+    Logger::Log("vertex num " + std::to_string(positionData.size()));
+    /*Logger::Log("ubo " + std::to_string(ubo[0]) + "," + std::to_string(ubo[1])
+            + "," + std::to_string(ubo[2]) + "," + std::to_string(ubo[3]) + ","
+            + std::to_string(ubo[4])
+            );
+            */
+    transform.print();
+
 }

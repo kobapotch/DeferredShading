@@ -24,10 +24,8 @@ class Primitive{
         GLuint vao;
 
         // Uniform buffer Object
-        std::vector<GLuint> ubo;
+        // std::vector<GLuint> ubo;
         
-        // 視点クラス
-        Camera* camera;
         // texture参照
         GLuint textureID = 0;
 
@@ -37,7 +35,7 @@ class Primitive{
         virtual void DrawVertex();
 
     public:
-        Primitive(Camera*);
+        Primitive();
         ~Primitive();
 
         // 頂点生データ 
@@ -55,7 +53,9 @@ class Primitive{
 
         virtual void Init(GLuint shaderID);
         void SetTexture(GLuint id){ textureID = id;}
-        void Draw(GLuint shaderID);
+        void Draw();
+
+        void print();
 
 };
 
@@ -64,7 +64,7 @@ class Plane : public Primitive{
     protected:
         void DrawVertex();
     public:
-        Plane(Camera*);
+        Plane();
 
 };
 
@@ -73,7 +73,7 @@ class Cube : public Primitive{
     protected:
         void DrawVertex();
     public:
-        Cube(Camera*);
+        Cube();
 };
 
 // 球
@@ -84,7 +84,7 @@ class Sphere : public Primitive{
     protected:
         void DrawVertex();
     public:
-        Sphere(Camera*);
+        Sphere();
         void Init(GLuint shaderID);
 };
 
@@ -101,7 +101,7 @@ class Torus : public Primitive{
         void DrawVertex();
 
     public:
-        Torus(Camera*);
+        Torus();
         void Init(GLuint shaderID);
 
 };
@@ -116,7 +116,7 @@ class Water : public Primitive{
     protected:
         void DrawVertex();
     public:
-        Water(Camera*);
+        Water();
         void Init(GLuint shaderID);
 };
 

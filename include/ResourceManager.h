@@ -10,7 +10,8 @@
 #include "CubeMap.h"
 
 class ResourceManager{
-    int shaderID;
+    private:
+        void loadTexture(const char*filename,int unit);
     
     public:
 
@@ -18,24 +19,20 @@ class ResourceManager{
         std::vector<std::shared_ptr<Texture> > textures;
         std::shared_ptr<CubeMap> cubeMap;
 
-        ResourceManager(int shaderID){
-            this->shaderID = shaderID;
-        }
+        ResourceManager(){}
+        
+        // ここでマテリアルの作成や使用するテクスチャを記述 
+        void makeResource(GLuint shaderID);
 
-        void loadTexture(const char* filename,int unit){
-            std::shared_ptr<Texture> texture(new Texture);
-            texture->loadTexture(filename);
-            texture->makeTexture(shaderID,unit);            
-            textures.push_back(texture);
-        }
-
-        void makeResource();
-
+        // シェーダに配置する
         void initResources(GLuint shaderID){
             for(auto mat : materials){
                 mat->Init(shaderID);
             }
-            cubeMap->makeCubeMap(shaderID,2);
+            for(auto tex : textures){
+                tex->makeTexture(shaderID);
+            }
+            cubeMap->makeCubeMap(shaderID,4);
 
         }
 

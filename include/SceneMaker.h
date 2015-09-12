@@ -9,15 +9,15 @@
 
 class SceneMaker{
     private:
-        ResourceManager* resourceManager; 
-        std::shared_ptr<Primitive> meshToPrimitive(FbxMesh*,Camera&);
+        std::shared_ptr<ResourceManager> resourceManager; 
+        std::shared_ptr<Primitive> meshToPrimitive(FbxMesh*);
         void RecursiveMakeMesh(FbxNode*,SceneManager&);
         void FbxToMyScene(FbxScene*,SceneManager&);
 
     public:
 
-        SceneMaker(ResourceManager&);
-        SceneManager makeScene();    
+        SceneMaker(std::shared_ptr<ResourceManager>);
+        std::unique_ptr<SceneManager> makeScene();    
 
         
 };

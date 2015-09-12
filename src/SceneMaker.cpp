@@ -1,5 +1,6 @@
 
 #include <random>
+#include <memory>
 #include <iostream>
 
 #include "ResourceManager.h"
@@ -83,20 +84,19 @@ void PrintAttributeData(FbxNode* node, int depth = 0){
 
 
 
-SceneMaker::SceneMaker(ResourceManager& rManager){
-    resourceManager = &rManager;
-
+SceneMaker::SceneMaker(std::shared_ptr<ResourceManager> rManager){
+    resourceManager = rManager;
 }
 
-SceneManager SceneMaker::makeScene(){
+std::unique_ptr<SceneManager> SceneMaker::makeScene(){
 
     Texture* hima = resourceManager->textures[0].get();
     Texture* garasubo = resourceManager->textures[1].get();
 
-    SceneManager scene(resourceManager);
+    auto scene = std::make_unique<SceneManager>();
 
-    scene.camera.transform.position = glm::vec3(3,8,40);
-    scene.cubeMap = resourceManager->cubeMap;
+    scene->camera.transform.position = glm::vec3(3,8,40);
+    scene->cubeMap = resourceManager->cubeMap;
 
     std::random_device rnd;
     std::mt19937 mt( rnd() );
@@ -104,7 +104,7 @@ SceneManager SceneMaker::makeScene(){
 
     for(int i=0;i<0;i++){
 
-        std::shared_ptr<Primitive> cube(new Cube(&scene.camera) );
+        std::shared_ptr<Primitive> cube(new Cube() );
         cube->texture = garasubo;
 
         cube->transform.position = glm::vec3(rand100(mt),rand100(mt),rand100(mt));
@@ -113,48 +113,107 @@ SceneManager SceneMaker::makeScene(){
 
         cube->material = resourceManager->materials[0];
 
-        scene.primitives.push_back(cube);
+        scene->primitives.push_back(cube);
     }
-    for(int i=0;i<5;i++){
-        std::shared_ptr<Primitive> torus(new Torus(&scene.camera) );
+    for(int i=0;i<6;i++){
+        std::shared_ptr<Primitive> torus(new Torus() );
         torus->texture = garasubo;
 
         torus->transform.position = glm::vec3(rand100(mt),rand100(mt),rand100(mt));
         torus->transform.rotation = glm::vec3(rand100(mt)*100,rand100(mt)*100,rand100(mt)*100);
-        torus->transform.scale = glm::vec3(3);
+        torus->transform.scale = glm::vec3(5);
 
-        torus->material = resourceManager->materials[0];
-
+        torus->material = resourceManager->materials[i%6];
         torus->animation = new RotateAnimation(&torus->transform);
 
-        scene.primitives.push_back(torus);
+        scene->primitives.push_back(torus);
     }
-    for(int i=0;i<2;i++){
-        std::shared_ptr<Primitive> sphere(new Sphere(&scene.camera) );
-        sphere->texture = garasubo;
-
+    for(int i=0;i<3;i++){
+        std::shared_ptr<Primitive> sphere(new Sphere() );
+        sphere->texture = hima;
         sphere->transform.position = glm::vec3(rand100(mt),rand100(mt),rand100(mt));
-
         sphere->transform.scale = glm::vec3(5);
 
-        sphere->material = resourceManager->materials[1];
-
-        scene.primitives.push_back(sphere);
+        sphere->material = resourceManager->materials[i%3];
+        scene->primitives.push_back(sphere);
     }
 
-    std::shared_ptr<Primitive> cube(new Cube(&scene.camera));
+    std::shared_ptr<Primitive> cube(new Cube());
+    cube->material = resourceManager->materials[0];
     cube->transform.scale  = glm::vec3(2,2,2);
     cube->transform.position = glm::vec3(0,0,0);
     cube->transform.rotation = glm::vec3(0,0,0);
     cube->texture = garasubo;
-    scene.primitives.push_back(cube);
+    scene->primitives.push_back(cube);
 
-    std::shared_ptr<Primitive> pl(new Plane(&scene.camera));
+    std::shared_ptr<Primitive> pl(new Plane());
+    pl->material = resourceManager->materials[0];
     pl->transform.scale = glm::vec3(100,100,1);
     pl->transform.position = glm::vec3(0,-30,0);
     pl->transform.rotation = glm::vec3(-90,0,0);
     pl->texture = garasubo;
-    scene.primitives.push_back(pl);
+    scene->primitives.push_back(pl);
+
+
+    // 背景平面の準備
+    Plane plane();
+
+    std::shared_ptr<Material> mat = resourceManager->materials[2];
+    std::shared_ptr<Texture> texture = resourceManager->textures[0];
+
+    // 奥
+    std::shared_ptr<Plane> planeBack(new Plane());
+    planeBack->texture = texture.get();
+    planeBack->material = mat;
+    planeBack->transform.scale = glm::vec3(100,100,1);
+    planeBack->transform.position = glm::vec3(0,0,-50);
+    scene->planes.push_back(planeBack);
+
+    // 左
+    std::shared_ptr<Plane> planeLeft(new Plane());
+    planeLeft->texture = texture.get();
+    planeLeft->material = mat;
+    planeLeft->transform.scale = glm::vec3(100,100,1);
+    planeLeft->transform.position = glm::vec3(-50,0,0);
+    planeLeft->transform.rotation = glm::vec3(0,90,0);
+    scene->planes.push_back(planeLeft);
+
+    // 下
+    std::shared_ptr<Plane> planeButtom(new Plane());
+    planeButtom->texture = texture.get();
+    planeButtom->material = mat;
+    planeButtom->transform.scale = glm::vec3(100,100,1);
+    planeButtom->transform.position = glm::vec3(0,-50,0);
+    planeButtom->transform.rotation = glm::vec3(-90,0,0);
+    scene->planes.push_back(planeButtom);
+
+    // 右
+    std::shared_ptr<Plane> planeRight(new Plane());
+    planeRight->texture = texture.get();
+    planeRight->material = mat;
+    planeRight->transform.scale = glm::vec3(100,100,1);
+    planeRight->transform.position = glm::vec3(50,0,0);
+    planeRight->transform.rotation = glm::vec3(0,-90,0);
+    scene->planes.push_back(planeRight);
+
+    // 上
+    std::shared_ptr<Plane> planeTop(new Plane());
+    planeTop->texture = texture.get();
+    planeTop->material = mat;
+    planeTop->transform.scale = glm::vec3(100,100,1);
+    planeTop->transform.position = glm::vec3(0,50,0);
+    planeTop->transform.rotation = glm::vec3(90,0,0);
+    scene->planes.push_back(planeTop);
+
+    // 前
+    std::shared_ptr<Plane> planeForward(new Plane());
+    planeForward->texture = texture.get();
+    planeForward->material = mat;
+    planeForward->transform.scale = glm::vec3(100,100,1);
+    planeForward->transform.position = glm::vec3(0,0,50);
+    planeForward->transform.rotation = glm::vec3(180,0,0);
+    scene->planes.push_back(planeForward);
+
 
 
     
@@ -184,7 +243,7 @@ SceneManager SceneMaker::makeScene(){
     geoConverter.Triangulate(fbxScene,true);
 
     // Fbxのシーンを，自分のシーンにPrimitiveとして読み込む
-    FbxToMyScene(fbxScene,scene);
+    FbxToMyScene(fbxScene,*scene);
 
     fbxScene->Destroy();
     fbxManager->Destroy();
@@ -195,26 +254,34 @@ SceneManager SceneMaker::makeScene(){
     light.position = glm::vec4(-25,-5,25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.5,0.2,0.2);
-    light.Ls = glm::vec3(1.0,0.2,0.2);
-    scene.addLight(light);
+    light.Ls = glm::vec3(1.0,0.7,0.7);
+    scene->addLight(light);
 
     light.position = glm::vec4(-25,-5,-25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.2,0.5,0.2);
-    light.Ls = glm::vec3(0.2,1.0,0.2);
-    scene.addLight(light);
+    light.Ls = glm::vec3(0.7,1.0,0.7);
+    scene->addLight(light);
 
     light.position = glm::vec4(25,-5,-25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.2,0.2,0.5);
-    light.Ls = glm::vec3(0.2,0.2,1.0);
-    scene.addLight(light);
+    light.Ls = glm::vec3(0.7,0.7,1.0);
+    scene->addLight(light);
 
     light.position = glm::vec4(25,25,25,1);
     light.La = glm::vec3(0.02,0.02,0.02);
     light.Ld = glm::vec3(0.5,0.5,0.5);
+    light.Ls = glm::vec3(0.9,0.9,0.9);
+    scene->addLight(light);
+
+    light.position = glm::vec4(50,100,50,1);
     light.Ls = glm::vec3(1.0,1.0,1.0);
-    scene.addLight(light);
+    scene->addLight(light);
+
+    light.position = glm::vec4(-50,100,50,1);
+    light.Ls = glm::vec3(1.0,1.0,1.0);
+    scene->addLight(light);
 
     return scene;
 }
@@ -240,16 +307,16 @@ void SceneMaker::FbxToMyScene(FbxScene* fbxScene,SceneManager& scene){
             shared_ptr<Material> mat(new Material);
             for(int m = 0;m<3;m++){
 
-                mat->Ka[m] = phongMaterial->Ambient.Get()[m];
-                mat->Kd[m] = phongMaterial->Diffuse.Get()[m];
-                mat->Ks[m] = phongMaterial->Specular.Get()[m];
+                // mat->Ka[m] = phongMaterial->Ambient.Get()[m];
+                // mat->Kd[m] = phongMaterial->Diffuse.Get()[m];
+                // mat->Ks[m] = phongMaterial->Specular.Get()[m];
             }
-            mat->shininess = phongMaterial->Shininess;
+            // mat->shininess = phongMaterial->Shininess;
 
             cout << "Material Info :" << endl;
-            cout << "ambient (" << mat->Ka[0] << "," << mat->Ka[1] << "," << mat->Ka[2] << endl;
-            cout << "diffuse (" << mat->Kd[0] << "," << mat->Kd[1] << "," << mat->Kd[2] << endl;
-            cout << "specular (" << mat->Ks[0] << "," << mat->Ks[1] << "," << mat->Ks[2] << endl;
+            // cout << "ambient (" << mat->Ka[0] << "," << mat->Ka[1] << "," << mat->Ka[2] << endl;
+            // cout << "diffuse (" << mat->Kd[0] << "," << mat->Kd[1] << "," << mat->Kd[2] << endl;
+            // cout << "specular (" << mat->Ks[0] << "," << mat->Ks[1] << "," << mat->Ks[2] << endl;
 
 
             resourceManager->materials.push_back(mat);
@@ -260,16 +327,16 @@ void SceneMaker::FbxToMyScene(FbxScene* fbxScene,SceneManager& scene){
             FbxSurfaceLambert* lambertMaterial = (FbxSurfaceLambert*)material;
             shared_ptr<Material> mat(new Material);
             for(int m=0;m<3;m++){
-                mat->Ka[m] = lambertMaterial->Ambient.Get()[m];
-                mat->Kd[m] = lambertMaterial->Diffuse.Get()[m];
-                mat->Ks[m] = 0;
+                // mat->Ka[m] = lambertMaterial->Ambient.Get()[m];
+                // mat->Kd[m] = lambertMaterial->Diffuse.Get()[m];
+                // mat->Ks[m] = 0;
             }
-            mat->shininess = 0;
+            // mat->shininess = 0;
 
             cout << "Material Info :" << endl;
-            cout << "ambient (" << mat->Ka[0] << "," << mat->Ka[1] << "," << mat->Ka[2] << endl;
-            cout << "diffuse (" << mat->Kd[0] << "," << mat->Kd[1] << "," << mat->Kd[2] << endl;
-            cout << "specular (" << mat->Ks[0] << "," << mat->Ks[1] << "," << mat->Ks[2] << endl;
+            // cout << "ambient (" << mat->Ka[0] << "," << mat->Ka[1] << "," << mat->Ka[2] << endl;
+            // cout << "diffuse (" << mat->Kd[0] << "," << mat->Kd[1] << "," << mat->Kd[2] << endl;
+            // cout << "specular (" << mat->Ks[0] << "," << mat->Ks[1] << "," << mat->Ks[2] << endl;
 
 
             resourceManager->materials.push_back(mat);
@@ -294,7 +361,7 @@ void SceneMaker::RecursiveMakeMesh(FbxNode* node,SceneManager& scene){
     for(int j=0;j<node->GetNodeAttributeCount();j++){
         FbxNodeAttribute* attribute = node->GetNodeAttributeByIndex(j);
         if(attribute->GetAttributeType() == FbxNodeAttribute::eMesh){
-            shared_ptr<Primitive> prim = meshToPrimitive( (FbxMesh*)attribute,scene.camera);
+            shared_ptr<Primitive> prim = meshToPrimitive( (FbxMesh*)attribute);
             scene.primitives.push_back(prim);
         }
     }
@@ -314,8 +381,8 @@ void SceneMaker::RecursiveMakeMesh(FbxNode* node,SceneManager& scene){
 }
 
 
-shared_ptr<Primitive> SceneMaker::meshToPrimitive(FbxMesh* mesh,Camera& camera){
-    shared_ptr<Primitive> prim(new Primitive(&camera));
+shared_ptr<Primitive> SceneMaker::meshToPrimitive(FbxMesh* mesh){
+    shared_ptr<Primitive> prim(new Primitive());
     prim->material = resourceManager->materials[resourceManager->materials.size()-1];
     prim->texture = resourceManager->textures[1].get();
 

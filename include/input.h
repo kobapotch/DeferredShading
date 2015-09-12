@@ -28,6 +28,8 @@ class Input{
         }
 
         KeyDirection getKeyDirection();
+        bool getZoomInButton();
+        bool getZoomOutButton();
 
 
 };

@@ -22,8 +22,8 @@ class Texture{
     GLuint textureID;
 
 public:
-    void loadTexture(const char* filename);
-    GLuint makeTexture(uint shaderID,int unit);
+    void loadTexture(const char* filename,int unit);
+    GLuint makeTexture(uint shaderID);
     GLuint getTextureID();
     void setTexture();
 

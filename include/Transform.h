@@ -1,10 +1,13 @@
 #ifndef _TRANSFORM_INCLUDED
 #define _TRANSFORM_INCLUDED
 
+#include "Logger.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <cmath>
+
 
 class Transform{
     public:
@@ -34,6 +37,12 @@ class Transform{
             glm::mat4 model = glm::translate(position) * (glm::eulerAngleYXZ(rotation.y*toRad,rotation.x*toRad,rotation.z*toRad) * glm::scale(scale));
             
             return model;
+        }
+
+        void print(){
+            Logger::Log("position " + std::to_string(position[0]) + "," + std::to_string(position[1])
+                    + "," + std::to_string(position[2])
+                    );
         }
 
 

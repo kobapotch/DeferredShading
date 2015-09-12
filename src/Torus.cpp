@@ -4,7 +4,7 @@
 
 #include "Primitive.h"
 
-Torus::Torus(Camera* camera) : Primitive(camera){
+Torus::Torus() : Primitive(){
 
     float majorStep = 2*M_PI/majorPrecision;
     float minorStep = 2*M_PI/minorPrecision;

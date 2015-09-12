@@ -1,8 +1,10 @@
 
 #include <cmath>
+#include <cstring>
 
 #include "Animation.h"
 #include "Input.h"
+#include "Logger.h"
 
 Animation::Animation(Transform* trans){
     transform = trans;
@@ -23,12 +25,16 @@ void CircleTurningAnimation::Animate(){
 }
 
 void ArrowKeyAnimation::Animate(){
+    if(input == NULL) {Logger::Log("no input"); return;}
     KeyDirection kd = input->getKeyDirection();
 
     if(kd == UP){theta += dTheta;}
     if(kd == DOWN){ theta -= dTheta;}
     if(kd == LEFT) { phi -= dPhi;}
     if(kd == RIGHT) { phi += dPhi;}
+
+    if(input->getZoomInButton()) rad -= dRad;
+    if(input->getZoomOutButton()) rad += dRad;
 
     float x = rad*sin(theta)*cos(phi);
     float z = rad*sin(theta)*sin(phi);

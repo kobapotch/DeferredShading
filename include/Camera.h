@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <cmath>
+#include <memory>
 
 #include "Transform.h"
 #include "Animation.h"
@@ -20,7 +21,7 @@ class Camera{
 
     public:
         Transform transform;
-        Animation* animation;
+        std::unique_ptr<Animation> animation;
 
         float angle;
 
@@ -31,10 +32,9 @@ class Camera{
             back = 1000.0f;
 
             // animation = new CircleTurningAnimation(&transform);
-            animation = new ArrowKeyAnimation(&transform);
+            animation = std::make_unique<ArrowKeyAnimation>(&transform);
         }
         ~Camera(){
-            if(animation != NULL) delete animation;
         }
 
         glm::mat4 getProjectionMatrix(){

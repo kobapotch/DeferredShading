@@ -138,7 +138,7 @@ GLfloat g_uv_data[] ={
 };
 
 
-Cube::Cube(Camera* camera) : Primitive(camera){
+Cube::Cube() : Primitive(){
 
     for(int i=0;i<24*3;i++){
         positionData.push_back(g_vertex_buffer_data[i]);

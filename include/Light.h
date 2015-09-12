@@ -61,6 +61,11 @@ class Light{
             ID = i;
         }
 
+        void print(){
+            Logger::Log("Light " + std::to_string(ID));
+        }
+            
+
 
 };
 

@@ -79,7 +79,7 @@ void CubeMap::makeCubeMap(unsigned int shaderID,int unit){
 
     glBindTexture(GL_TEXTURE_CUBE_MAP,0);
 
-    Logger::Log("ubo is " + std::to_string(ubo));
+    Logger::Log("Cubemap ubo is " + std::to_string(ubo) + " shaderID is " + std::to_string(shaderID));
 }
 
 void CubeMap::setCubeMap(){

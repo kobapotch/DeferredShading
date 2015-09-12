@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "ResourceManager.h"
+#include "ShaderManager.h"
 #include "Primitive.h"
 #include "Camera.h"
 #include "Light.h"
@@ -30,11 +31,13 @@ class SceneManager{
 
         shared_ptr<CubeMap> cubeMap;
 
-        SceneManager(ResourceManager* resourceManager); 
+        SceneManager(); 
 
         void addLight(Light light);
         void initScene(GLuint &shaderID);
-        void drawScene(GLuint &shaderID);
+        void drawScene(std::shared_ptr<ShaderManager>);
+
+        void printScene();
 };
 
 #endif

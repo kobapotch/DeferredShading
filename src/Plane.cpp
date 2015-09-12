@@ -20,7 +20,7 @@ GLfloat planeNor[] = {
     0,0,1
 };
 
-Plane::Plane(Camera* camera) : Primitive(camera){
+Plane::Plane() : Primitive(){
     for(int i=0;i<4*3;i++){
         positionData.push_back(planePos[i]);
         colorData.push_back(0);

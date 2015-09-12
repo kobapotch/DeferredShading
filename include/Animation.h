@@ -37,13 +37,14 @@ class ArrowKeyAnimation : public Animation{
         Input* input;
         float theta;
         float phi;
-        static constexpr float rad = 50;
+        float rad;
         static constexpr float dTheta = 0.02;
         static constexpr float dPhi = 0.02;
+        static constexpr float dRad = 1.0;
     public:
         ArrowKeyAnimation(Transform* trans) : Animation(trans) {
             input = Input::getInstance();
-            theta = M_PI/2.0; phi = 0;
+            theta = M_PI/2.0; phi = 0; rad = 50;
         }
         void Animate();
 };

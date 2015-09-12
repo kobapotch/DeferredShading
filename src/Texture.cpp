@@ -13,22 +13,19 @@ using namespace std;
 const int Texture::unitMacro[] = {
     GL_TEXTURE0,GL_TEXTURE1,GL_TEXTURE2,GL_TEXTURE3};
 
-void Texture::loadTexture(const char* filename){
+void Texture::loadTexture(const char* filename,int unit){
+    this->unit = unit;
 
     image = cv::imread(filename,-1);
     if(image.data==NULL){
         cout << "imagefile read error in " << filename << endl;
         return;
     }
-
 }
 
-
-GLuint Texture::makeTexture(GLuint shaderID,int unit){
+GLuint Texture::makeTexture(GLuint shaderID){
 
     Logger::Log("Load Texture");
-
-    this->unit = unit;
 
     glActiveTexture(unitMacro[unit]);
 

@@ -8,10 +8,7 @@
 #include <memory>
 #include <chrono>
 
-#include "ShaderManager.h"
-#include "SceneMaker.h"
-#include "SceneManager.h"
-#include "ResourceManager.h"
+#include "RenderDriver.h"
 #include "Input.h"
 
 using namespace std;
@@ -36,7 +33,7 @@ int main(int argc,char* argv[]){
     // glfwCreateWindow(width,height,title,monitor,share)
     //      monitor : 使用するモニタ　フルスクリーンでない場合にはNULLを指定
     //      share : 他のウィンドウとのリソースの共有に使う　windowのハンドルを指定
-    window = glfwCreateWindow(1280,800, "Sample",NULL,NULL);
+    window = glfwCreateWindow(720,480, "Sample",NULL,NULL);
     if(!window){
         cout << "window open error" << endl;
         glfwTerminate();
@@ -58,53 +55,14 @@ int main(int argc,char* argv[]){
         << "OpenGL version : " << glGetString( GL_VERSION) << endl
         << "GLSL version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 
-    // シェーダーの準備
-    ShaderManager shaderManager;
-    shaderManager.makeShader("VertexShader.glsl","FragmentShader.glsl");
-    GLuint programID = shaderManager.programID[0];
-
-    ResourceManager resourceManager(programID);
-    resourceManager.makeResource();
-
-    SceneMaker sceneMaker(resourceManager);
-    SceneManager myScene = sceneMaker.makeScene();
-
-    myScene.initScene(programID);
-    resourceManager.initResources(programID);
-
-
+    // 実行する子
+    RenderDriver driver(window);
     // キー入力コールバックの登録
     Input* input = Input::createInstance(window);
 
-    cout << "Draw Start" << endl;
-
-    // 時間測定準備
-    std::chrono::time_point<std::chrono::system_clock> start,end;
-    int counter = 0;
-
-    // メインループ
-    while(!glfwWindowShouldClose(window)){
-        start = std::chrono::system_clock::now();
-
-        myScene.drawScene(programID);
-
-        
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-        // glfwWaitEvents();
-        
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        if(counter%100==0){
-        cout << "FPS : " <<  1 / elapsed_seconds.count() << endl;
-        counter=0;
-        }
-        counter++;
-        
-    }
-
-    glfwTerminate();
-
+    // 実行
+    driver.run();
+    
 }
 
 

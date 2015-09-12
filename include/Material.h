@@ -17,18 +17,14 @@ class Material{
 
     public:
 
-        glm::vec3 Ka;
-        glm::vec3 Kd;
-        glm::vec3 Ks;
-        float shininess;
-        float waterness;
+        float Metallic;
+        float Roughness;
+        float F0;
 
         Material(){
-            Ka = glm::vec3(0.1,0.1,0.1);
-            Kd = glm::vec3(0.5,0.5,0.5);
-            Ks = glm::vec3(0.5,0.5,0.5);
-            shininess = 20;
-            waterness = 0;
+            Metallic = 1.0f;
+            Roughness = 0.5f;
+            F0 = 0.8f;
         }
 
         // シェーダー内のuniform blockにデータをバインド 
@@ -37,12 +33,12 @@ class Material{
             Logger::Log("Material Init");        
 
             string uniformName = string("Material"); 
+            
+            cout << "shaderID " << shaderID << endl;
 
-            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".Ka").c_str() ));
-            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".Kd").c_str() ));
-            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".Ks").c_str() ));
-            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".shininess").c_str() ));
-            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".waterness").c_str() ));
+            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".Metallic").c_str() ));
+            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".Roughness").c_str() ));
+            ubo.push_back(glGetUniformLocation( shaderID,(uniformName + ".F0").c_str() ));
 
             cout << "material ubo :";
             for(auto i : ubo){
@@ -52,12 +48,9 @@ class Material{
         }
 
         void Set(){
-            glUniform3fv(ubo[0],1,&Ka[0]);
-            glUniform3fv(ubo[1],1,&Kd[0]);
-            glUniform3fv(ubo[2],1,&Ks[0]);
-
-            glUniform1f(ubo[3],shininess);
-            glUniform1f(ubo[4],waterness);
+            glUniform1f(ubo[0],Metallic);
+            glUniform1f(ubo[1],Roughness);
+            glUniform1f(ubo[2],F0);
         }
 };
 

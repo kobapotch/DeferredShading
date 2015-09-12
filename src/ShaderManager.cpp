@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 
-// #include "Logger.h"
+#include "Logger.h"
 
 using namespace std;
 
@@ -76,7 +76,7 @@ void ShaderManager::linkShader(std::vector<GLuint> shaderID){
     // Log("Linked program.");
     cout << "Linked program : " << ID << endl;
 
-    programID.push_back(ID);
+    programID = ID;
 }
 
 void ShaderManager::makeShader(const char* vertexShader,const char* fragmentShader){
@@ -92,5 +92,82 @@ void ShaderManager::makeShader(const char* vertexShader,const char* fragmentShad
 
     linkShader(shaderID);
 
+    // uniform変数の書き出し
+    GLint num,maxLen;
+    glGetProgramiv(programID,GL_ACTIVE_UNIFORM_MAX_LENGTH,&maxLen);
+    glGetProgramiv(programID,GL_ACTIVE_UNIFORMS,&num);
+    Logger::Log("Program Info : " + std::to_string(programID) + ","+ std::to_string(num));
+
+    GLchar* name = (GLchar*) malloc(maxLen);
+
+    GLint size,location;
+    GLsizei written;
+    GLenum type;
+    Logger::Log(" Location | Name");
+    for(int i=0;i<num;++i){
+        glGetActiveUniform(programID,i,maxLen,&written,&size,&type,name);
+        location = glGetUniformLocation(programID,name);
+        Logger::Log(std::to_string(location) + " | " + std::string(name));
+        ubo_dict[std::string(name)] = location;
+    }
+    free(name);
+
+    vertexPass[0] = glGetSubroutineIndex(programID,GL_VERTEX_SHADER,"pass1");
+    vertexPass[1] = glGetSubroutineIndex(programID,GL_VERTEX_SHADER,"pass2");
+    fragmentPass[0] = glGetSubroutineIndex(programID,GL_FRAGMENT_SHADER,"pass1");
+    fragmentPass[1] = glGetSubroutineIndex(programID,GL_FRAGMENT_SHADER,"pass2");
+
+    Logger::Log("subroutine index " + std::to_string(vertexPass[0]) + " " + std::to_string(vertexPass[1])
+            + " " + std::to_string(fragmentPass[0]) + " " + std::to_string(fragmentPass[1]));
+
+
+
 }
+
+void ShaderManager::useShader(){
+    glUseProgram(programID);
+}
+
+void ShaderManager::setPass(int passNum){
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER,1,&(vertexPass[passNum-1]));
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER,1,&(fragmentPass[passNum-1]));
+
+}
+
+void ShaderManager::checkDict(std::string name){
+    // ubo辞書にないuniformの書き込みがある時は，indexを探してから
+    if(ubo_dict.find(name) == ubo_dict.end()){
+        GLuint index = glGetUniformLocation(programID,name.c_str());
+        ubo_dict[name] = index;
+        Logger::Log("--Warning : ubo_dict not found of " + std::string(name));
+    }
+}
+
+void ShaderManager::setUniform(std::string name, const glm::vec3& v){
+    checkDict(name);
+    glUniform3fv(ubo_dict[name],1,&v[0]);
+}
+void ShaderManager::setUniform(std::string name, const glm::vec4& v){
+    checkDict(name);
+    glUniform4fv(ubo_dict[name],1,&v[0]);
+}
+void ShaderManager::setUniform(std::string name, const glm::mat3& m){
+    checkDict(name);
+    glUniformMatrix3fv(ubo_dict[name],1,GL_FALSE,&m[0][0]);
+}
+void ShaderManager::setUniform(std::string name, const glm::mat4& m){
+    checkDict(name);
+    glUniformMatrix4fv(ubo_dict[name],1,GL_FALSE,&m[0][0]);
+}
+void ShaderManager::setUniform(std::string name,const float val){
+    checkDict(name);
+    glUniform1f(ubo_dict[name],val);
+}
+void ShaderManager::setUniform(std::string name, const int val){
+    checkDict(name);
+    glUniform1i(ubo_dict[name],val);
+}
+
+
+
 
